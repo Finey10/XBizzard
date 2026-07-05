@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TETEA — 22 YEARS OF CHAOS</title>
+<meta name="description" content="An interactive cyberpunk memory archive for Tetea's 22nd birthday — a digital experience built from friendship.">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Space+Mono:wght@400;700&family=Rubik+Mono+One&family=VT323&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<!-- Lenis Smooth Scroll -->
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --neon-pink:#ff00aa;
+  --neon-cyan:#00f0ff;
+  --neon-yellow:#f0ff00;
+  --neon-green:#39ff14;
+  --dark:#0a0a0a;
+  --darker:#050505;
+  --terminal-green:#00ff41;
+  --terminal-amber:#ffb000;
+  
+  /* Awwwards Premium Easing */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+}
+html{scroll-behavior:auto} /* Overridden by Lenis */
+body{
+  background:var(--darker);color:#fff;font-family:'Space Mono',monospace;
+  overflow-x:hidden;cursor:crosshair;min-height:100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lenis Default CSS */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
+/* ════════════════════════════════════════
+   LOADING SCREEN
+   ════════════════════════════════════════ */
+.loading-screen{
+  position:fixed;inset:0;z-index:20000;background:var(--darker);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  font-family:'VT323',monospace;
+  transition:opacity .8s var(--ease-out-quart), visibility .8s var(--ease-out-quart);
+}
+.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loading-screen .terminal{
+  width:90%;max-width:600px;padding:36px;
+  border:1px solid var(--neon-cyan);background:rgba(0,0,0,.95);
+  box-shadow:0 0 40px rgba(0,240,255,.12),inset 0 0 40px rgba(0,240,255,.03);
+  position:relative;
+  transform: translateZ(0); /* Hardware accel */
+}
+.loading-screen .term-header{
+  color:#666;font-size:.9rem;margin-bottom:18px;padding-bottom:10px;
+  border-bottom:1px solid rgba(0,240,255,.15);letter-spacing:2px;
+}
+.loading-screen .term-header span{color:var(--neon-cyan)}
+.loading-screen .term-line{
+  color:var(--terminal-green);font-size:1.35rem;line-height:1.9;
+  opacity:0;transform:translateX(-8px);
+  transition:all .5s var(--ease-out-expo);
+}
+.loading-screen .term-line.visible{opacity:1;transform:translateX(0)}
+.loading-screen .term-line.error{color:var(--neon-pink)}
+.loading-screen .term-line.warn{color:var(--terminal-amber)}
+.loading-screen .term-line.done{color:var(--neon-cyan)}
+.loading-screen .progress-row{
+  display:flex;align-items:center;gap:10px;margin:4px 0 8px;
+  opacity:0;transition:opacity .4s var(--ease-out-expo);
+}
+.loading-screen .progress-row.visible{opacity:1}
+.loading-screen .progress-bar{
+  flex:1;height:3px;background:rgba(0,240,255,.1);position:relative;overflow:hidden;
+}
+.loading-screen .progress-fill{
+  position:absolute;left:0;top:0;height:100%;width:0%;
+  background:var(--neon-cyan);box-shadow:0 0 10px var(--neon-cyan);
+  transition:width .1s linear;
+}
+.loading-screen .progress-pct{
+  font-size:.8rem;color:var(--neon-cyan);min-width:36px;text-align:right;
+}
+.loading-screen .glitch-exit{
+  position:absolute;inset:0;pointer-events:none;opacity:0;z-index:100;
+}
+.loading-screen.glitching{animation:loadGlitch .6s steps(6) forwards}
+.loading-screen.glitching .glitch-exit{opacity:1;animation:glitchOverlay .6s steps(6) forwards}
+@keyframes loadGlitch{
+  0%{filter:none}
+  15%{filter:hue-rotate(90deg) contrast(2) brightness(1.5)}
+  30%{filter:hue-rotate(-90deg) contrast(3) brightness(2);transform:skewX(-3deg)}
+  50%{filter:hue-rotate(180deg) contrast(2);transform:skewX(2deg)}
+  65%{filter:none;transform:skewX(0)}
+  80%{filter:brightness(3)}
+  100%{filter:none;transform:none}
+}
+@keyframes glitchOverlay{
+  0%{background:transparent}
+  20%{background:rgba(255,0,170,.15)}
+  40%{background:rgba(0,240,255,.1)}
+  60%{background:transparent}
+  80%{background:rgba(255,255,255,.05)}
+  100%{background:transparent}
+}
+
+/* ════════════════════════════════════════
+   BASE OVERLAYS
+   ════════════════════════════════════════ */
+.crt::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.12) 2px,rgba(0,0,0,.12) 4px);
+  pointer-events:none;z-index:9998;
+}
+.noise{
+  position:fixed;inset:0;pointer-events:none;z-index:9996;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat:repeat;
+}
+#fx-canvas{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.5}
+
+/* ════════════════════════════════════════
+   SECTION TRANSITION OVERLAY
+   ════════════════════════════════════════ */
+.section-transition{
+  position:fixed;inset:0;z-index:9990;pointer-events:none;
+  opacity:0;visibility:hidden;
+}
+.section-transition.active{
+  opacity:1;visibility:visible;
+  animation:sectTrans .65s steps(8) forwards;
+}
+@keyframes sectTrans{
+  0%{background:var(--darker);filter:none}
+  12%{background:#ff00aa;filter:contrast(2) brightness(2);clip-path:polygon(0 0,100% 0,100% 30%,0 30%)}
+  25%{background:#00f0ff;filter:contrast(3) brightness(3);clip-path:polygon(0 35%,100% 35%,100% 70%,0 70%)}
+  40%{background:var(--darker);filter:none;clip-path:none}
+  55%{background:#fff;opacity:.2}
+  70%{background:var(--darker);opacity:.6}
+  85%{background:var(--darker);opacity:.3;filter:hue-rotate(180deg)}
+  100%{background:var(--darker);opacity:0;visibility:hidden;filter:none}
+}
+
+/* ════════════════════════════════════════
+   NAV
+   ════════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:100;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 40px;background:rgba(5,5,5,.85);
+  backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,0,170,.4);
+  font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:3px;
+  transition:background .4s var(--ease-out-expo), transform .4s var(--ease-out-expo);
+  transform: translateZ(0);
+}
+nav a{color:#fff;text-decoration:none;font-size:.85rem;transition:color .3s var(--ease-out-quart), text-shadow .3s var(--ease-out-quart); position:relative;}
+nav a:hover{color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,240,255,.6)}
+.nav-logo{font-family:'Rubik Mono One',sans-serif;font-size:1.3rem;color:var(--neon-pink);text-shadow:0 0 15px rgba(255,0,170,.5)}
+nav.nav-hidden{transform:translate3d(0, -100%, 0)}
+
+/* Focus states for accessibility */
+*:focus-visible {
+  outline: 2px dashed var(--neon-cyan);
+  outline-offset: 4px;
+}
+
+/* ════════════════════════════════════════
+   HERO — SIGNAL RESTORATION
+   ════════════════════════════════════════ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  position:relative;z-index:10;padding:120px 20px 80px;
+  overflow:hidden;
+}
+.hero-bg-photos{
+  position:absolute;inset:0;z-index:-1;opacity:.15;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+  filter:grayscale(100%) contrast(1.5) brightness(.25);
+}
+.hero-bg-photos img{width:100%;height:100%;object-fit:cover; transform: translateZ(0)}
+
+/* Signal restoration states */
+.hero-signal{
+  position:absolute;inset:0;z-index:20;background:var(--darker);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:20px;
+  transition:opacity 2s var(--ease-out-quart), visibility 2s var(--ease-out-quart);
+}
+.hero-signal.restored{opacity:0;visibility:hidden;pointer-events:none}
+.hero-signal .no-signal{
+  font-family:'VT323',monospace;font-size:4rem;color:#555;
+  letter-spacing:14px;
+}
+.hero-signal .signal-status{
+  font-family:'VT323',monospace;font-size:1.4rem;color:var(--terminal-green);
+  opacity:0;transition:opacity .6s var(--ease-out-quart);letter-spacing:4px;
+}
+.hero-signal .signal-status.active{opacity:1}
+.hero-signal .static-overlay{
+  position:absolute;inset:0;pointer-events:none;opacity:.25;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:staticNoise .08s steps(4) infinite;
+}
+@keyframes signalFlicker{0%,100%{opacity:1;color:#555}30%{opacity:.2}60%{opacity:.8;color:#888}85%{opacity:1;color:var(--neon-pink)}}
+@keyframes staticNoise{0%{transform:translate(0)}25%{transform:translate(-3%,-3%)}50%{transform:translate(3%,3%)}75%{transform:translate(-3%,3%)}100%{transform:translate(0)}}
+
+/* Childhood photo */
+.beginning-photo{
+  position:relative;z-index:5;margin-bottom:40px;
+  transform:translate3d(0,0,0) rotate(-2deg);
+  opacity:0;
+  animation:floatBob 5s var(--ease-in-out-circ) infinite;
+  cursor:pointer;
+  transition: transform .6s var(--ease-out-expo);
+}
+.beginning-photo:hover{
+  transform:translate3d(0,-10px,0) rotate(0deg) scale(1.05) !important;
+  animation:none;
+}
+.beginning-photo.photo-hidden{opacity:0;animation:none}
+.beginning-photo.photo-visible{
+  animation:photoReveal 1.6s var(--ease-out-quart) forwards, floatBob 5s var(--ease-in-out-circ) 1.6s infinite;
+}
+.beginning-photo .polaroid{
+  background:var(--dark);padding:14px 14px 55px 14px;
+  border:2px solid rgba(255,0,170,.2);position:relative;overflow:hidden;
+  box-shadow:0 0 20px rgba(255,0,170,.1), 0 15px 50px rgba(0,0,0,.6);
+  transition:box-shadow 1s var(--ease-out-quart), border-color 1s var(--ease-out-quart);
+  transform: translateZ(0);
+}
+.beginning-photo .polaroid.powered-on{
+  border-color:var(--neon-cyan);
+  /* Premium layered bloom */
+  box-shadow:
+    0 0 10px rgba(0,240,255,0.4),
+    0 0 30px rgba(0,240,255,0.2),
+    0 0 80px rgba(0,240,255,0.1),
+    0 15px 50px rgba(0,0,0,0.8);
+}
+.beginning-photo .polaroid img{
+  width:100%;max-width:420px;height:auto;display:block;
+  filter:contrast(1.1) saturate(1.2);
+  transition:filter 1.2s var(--ease-out-quart);
+}
+.beginning-photo .polaroid img.scanning{
+  filter:grayscale(100%) contrast(2) brightness(.4);
+  animation:imgScan 2.2s var(--ease-out-quart) forwards;
+}
+@keyframes imgScan{
+  0%{filter:grayscale(100%) contrast(3) brightness(.2);clip-path:inset(0 0 100% 0)}
+  20%{clip-path:inset(0 0 70% 0)}
+  50%{filter:grayscale(80%) contrast(2) brightness(.5);clip-path:inset(0 0 30% 0)}
+  80%{filter:grayscale(30%) contrast(1.3);clip-path:inset(0 0 5% 0)}
+  100%{filter:contrast(1.1) saturate(1.2);clip-path:inset(0 0 0% 0)}
+}
+.beginning-photo .label{
+  position:absolute;top:-42px;left:50%;transform:translateX(-50%);
+  font-family:'Rubik Mono One',sans-serif;font-size:1rem;
+  color:var(--neon-cyan);white-space:nowrap;
+  text-shadow:0 0 15px rgba(0,240,255,.8);
+  animation:labelPulse 3s var(--ease-in-out-circ) infinite;
+}
+@keyframes labelPulse{0%,100%{opacity:1;text-shadow:0 0 15px rgba(0,240,255,.8)}50%{opacity:.4;text-shadow:0 0 5px rgba(0,240,255,.3)}}
+@keyframes photoReveal{0%{opacity:0;transform:translate3d(0, 40px, 0) rotate(-6deg) scale(.9)}100%{opacity:1;transform:translate3d(0,0,0) rotate(-2deg) scale(1)}}
+@keyframes floatBob{
+  0%,100%{transform:translate3d(0,0,0) rotate(-2deg)}
+  50%{transform:translate3d(0,-12px,0) rotate(-1.5deg)}
+}
+
+/* Hero title */
+.glitch-title{
+  font-family:'Rubik Mono One',sans-serif;font-size:clamp(3rem,9vw,7.5rem);
+  color:#fff;text-align:center;line-height:.95;
+  text-shadow:3px 3px var(--neon-pink),-3px -3px var(--neon-cyan);
+  letter-spacing:-3px;position:relative;
+  opacity:0;
+  transform: translateZ(0);
+}
+.glitch-title.title-visible{animation:titleReveal 1.2s var(--ease-out-expo) forwards}
+.glitch-title .line2{font-size:.5em;color:var(--neon-yellow);text-shadow:2px 2px var(--neon-green)}
+@keyframes titleReveal{0%{opacity:0;transform:translate3d(0, 40px, 0) skewX(-5deg)}100%{opacity:1;transform:translate3d(0,0,0) skewX(0)}}
+
+.sub-glitch{
+  font-family:'Oswald',sans-serif;font-size:clamp(1rem,2.2vw,1.6rem);
+  color:var(--neon-cyan);margin-top:18px;text-transform:uppercase;
+  letter-spacing:8px;opacity:0;
+}
+.sub-glitch.visible{animation:fadeIn 1s var(--ease-out-quart) forwards}
+@keyframes fadeIn{0%{opacity:0}100%{opacity:.9}}
+
+/* Age counter */
+.age-display{
+  font-family:'Rubik Mono One',sans-serif;font-size:clamp(5rem,12vw,11rem);
+  color:transparent;-webkit-text-stroke:3px var(--neon-pink);
+  margin:20px 0;position:relative;opacity:0;
+}
+.age-display.visible{animation:fadeIn 1s var(--ease-out-quart) forwards}
+.age-display::after{
+  content:'22';position:absolute;left:5px;top:5px;
+  color:var(--neon-cyan);-webkit-text-stroke:0;opacity:.25;z-index:-1;
+}
+.age-display .counter-num{display:inline-block;min-width:2ch;text-align:center;transition:transform .15s var(--ease-out-quart)}
+.age-display .counter-num.tick{transform:scaleY(1.15)}
+
+.countdown-chaos{
+  display:flex;gap:15px;margin-top:35px;flex-wrap:wrap;justify-content:center;
+  opacity:0;
+}
+.countdown-chaos.visible{animation:fadeIn 1s var(--ease-out-quart) forwards}
+.cd-box{
+  background:rgba(255,0,170,.05);border:1px solid rgba(255,0,170,.4);
+  padding:14px 24px;text-align:center;position:relative;
+  transform:translate3d(0,0,0) rotate(var(--rot,0deg));
+  transition:transform .4s var(--ease-out-expo), border-color .4s var(--ease-out-expo), box-shadow .4s var(--ease-out-expo);
+  backdrop-filter:blur(6px);min-width:85px;
+}
+.cd-box:nth-child(1){--rot:-3deg}
+.cd-box:nth-child(2){--rot:2deg}
+.cd-box:nth-child(3){--rot:-1deg}
+.cd-box:nth-child(4){--rot:4deg}
+.cd-box:hover{
+  transform:translate3d(0,-5px,0) rotate(0deg) scale(1.1);
+  z-index:10;
+  border-color:var(--neon-pink);
+  /* Layered glow */
+  box-shadow: 0 0 15px rgba(255,0,170,0.3), 0 0 30px rgba(255,0,170,0.1);
+}
+.cd-box .num{
+  font-family:'Rubik Mono One',sans-serif;font-size:2.4rem;color:var(--neon-yellow);
+  display:block;text-shadow:0 0 12px rgba(240,255,0,.6);
+}
+.cd-box .lbl{font-size:.7rem;color:#999;text-transform:uppercase;letter-spacing:3px;margin-top:4px}
+
+.chaos-btn{
+  margin-top:45px;padding:16px 48px;
+  background:transparent;border:2px solid var(--neon-cyan);
+  color:var(--neon-cyan);font-family:'Oswald',sans-serif;
+  font-size:1.15rem;text-transform:uppercase;letter-spacing:4px;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:all .4s var(--ease-out-expo);
+  opacity:0;
+  transform: translateZ(0);
+}
+.chaos-btn.visible{animation:fadeIn 1s var(--ease-out-quart) forwards}
+.chaos-btn:hover{
+  background:var(--neon-cyan);color:#000;
+  box-shadow:0 0 20px rgba(0,240,255,.5), 0 0 60px rgba(0,240,255,.2);
+  transform: scale(1.05);
+}
+.chaos-btn::before{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+  transition:left .6s var(--ease-out-quart);
+}
+.chaos-btn:hover::before{left:100%}
+
+/* ════════════════════════════════════════
+   SECTIONS
+   ════════════════════════════════════════ */
+section{position:relative;z-index:10;padding:120px 20px}
+.section-header{
+  font-family:'Rubik Mono One',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);
+  color:var(--neon-pink);text-transform:uppercase;
+  margin-bottom:25px;position:relative;display:inline-block;
+  letter-spacing:-1px;
+}
+.section-header::after{
+  content:'';position:absolute;bottom:-10px;left:0;width:100%;height:4px;
+  background:linear-gradient(90deg,var(--neon-pink),var(--neon-cyan));
+}
+.section-note{
+  font-family:'Space Mono',monospace;color:#777;margin-bottom:60px;font-size:.9rem;
+  letter-spacing:2px;
+}
+
+/* ════════════════════════════════════════
+   VISUAL CHAOS — SCATTERED PHOTOS
+   ════════════════════════════════════════ */
+.photo-scatter{
+  position:relative;min-height:1000px;max-width:1200px;margin:0 auto;
+}
+.s-img-wrap{
+  position:absolute;cursor:pointer;
+  /* Premium scroll parallax logic via CSS variable */
+  transform: translate3d(0, var(--parallax-y, 0px), 0) rotate(var(--base-rot, 0deg));
+  transition: transform .5s var(--ease-out-quart), z-index 0s, filter .5s var(--ease-out-quart);
+  will-change: transform;
+}
+.s-img{
+  width:200px;height:240px;object-fit:cover;display:block;
+  border:2px solid rgba(0,240,255,.4);
+  filter:grayscale(40%) contrast(1.1);
+  box-shadow:0 10px 30px rgba(0,0,0,.5), 0 0 15px rgba(0,240,255,.05);
+  transition:all .5s var(--ease-out-quart);
+}
+.s-img-wrap:hover{
+  z-index:100 !important;
+  /* Hover overrides transform but keeps parallax-y */
+  transform: translate3d(0, var(--parallax-y, 0px), 0) rotate(var(--hover-rot, 2deg)) scale(1.08) !important;
+}
+.s-img-wrap:hover .s-img{
+  filter:grayscale(0%) contrast(1.05);
+  border-color:var(--neon-yellow);
+  mix-blend-mode: screen; /* Makes glow interact with bg */
+  /* Layered bloom */
+  box-shadow:
+    0 0 15px rgba(0,240,255,0.4),
+    0 0 40px rgba(255,0,170,0.3),
+    0 0 80px rgba(255,0,170,0.1),
+    0 20px 40px rgba(0,0,0,.8);
+}
+.s-img-wrap.highlighted .s-img{
+  animation:memHighlight 3s var(--ease-out-quart) forwards;
+  border-color:var(--neon-yellow);
+}
+.s-img-wrap.highlighted{z-index:90 !important}
+@keyframes memHighlight{
+  0%{box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  15%{box-shadow:0 0 30px rgba(255,0,170,0.4),0 0 70px rgba(0,240,255,0.3)}
+  85%{box-shadow:0 0 30px rgba(255,0,170,0.4),0 0 70px rgba(0,240,255,0.3)}
+  100%{box-shadow:0 10px 30px rgba(0,0,0,.5)}
+}
+
+/* Memory restored toast */
+.memory-toast{
+  position:fixed;bottom:50px;left:50%;transform:translate3d(-50%, 100px, 0);
+  background:rgba(5,5,5,.95);border:1px solid var(--neon-cyan);padding:14px 34px;
+  font-family:'VT323',monospace;font-size:1.35rem;color:var(--neon-cyan);
+  z-index:5000;opacity:0;transition:all .6s var(--ease-out-expo);
+  box-shadow:0 0 30px rgba(0,240,255,.15);pointer-events:none;
+}
+.memory-toast.visible{opacity:1;transform:translate3d(-50%, 0, 0)}
+.memory-toast::before{content:'> ';color:var(--neon-pink)}
+
+/* Handwritten captions */
+.s-caption{
+  position:absolute;bottom:-35px;left:50%;transform:translate3d(-50%,0,0);
+  font-family:'Caveat',cursive;font-size:1.1rem;color:rgba(255,255,100,.85);
+  white-space:nowrap;opacity:0;transition:opacity .4s var(--ease-out-quart) .1s;
+  pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.9);
+}
+.s-img-wrap:hover .s-caption{opacity:1}
+
+@media(max-width:768px){
+  .s-img{width:140px;height:170px}
+  .photo-scatter{min-height:800px}
+}
+
+/* ════════════════════════════════════════
+   MEMORY ARCHIVE — GRID WITH OVERLAYS
+   ════════════════════════════════════════ */
+.archive-stats{
+  display:flex;gap:30px;margin-bottom:50px;flex-wrap:wrap;
+}
+.archive-stat{
+  font-family:'VT323',monospace;font-size:1.1rem;
+  color:#777;padding:10px 20px;border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);transition:all .4s var(--ease-out-quart);
+}
+.archive-stat:hover{border-color:var(--neon-cyan);color:#bbb;box-shadow:0 0 15px rgba(0,240,255,.1)}
+.archive-stat .stat-num{color:var(--neon-cyan);font-size:1.6rem;display:inline-block}
+.archive-stat .stat-label{color:#666;letter-spacing:1px}
+
+.photo-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:16px;max-width:1400px;margin:0 auto;
+}
+.grid-item{
+  position:relative;overflow:hidden;aspect-ratio:4/5;
+  border:1px solid rgba(255,0,170,.12);transition:all .5s var(--ease-out-quart);
+  cursor:pointer;
+  transform: translateZ(0); /* Hardware accel */
+}
+.grid-item:hover{
+  border-color:var(--neon-cyan);
+  transform:scale(1.04) translateZ(0);
+  box-shadow:0 15px 40px rgba(0,0,0,.6), 0 0 30px rgba(0,240,255,.2);
+  z-index:10;
+}
+.grid-item .g-img{
+  width:100%;height:100%;object-fit:cover;
+  filter:grayscale(40%) contrast(1.1);transition:all .5s var(--ease-out-quart);
+}
+.grid-item:hover .g-img{filter:grayscale(0%) contrast(1.05)}
+.grid-item .grid-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.4) 50%,transparent 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;padding:16px;
+  opacity:0;transform:translate3d(0, 10px, 0);
+  transition:all .4s var(--ease-out-expo);
+}
+.grid-item:hover .grid-overlay{opacity:1;transform:translate3d(0, 0, 0)}
+.grid-overlay .ov-loc{
+  font-family:'VT323',monospace;font-size:1rem;color:var(--neon-cyan);
+  display:flex;align-items:center;gap:6px;margin-bottom:4px;
+}
+.grid-overlay .ov-date{font-family:'Space Mono',monospace;font-size:.7rem;color:#bbb;margin-bottom:6px;letter-spacing:1px}
+.grid-overlay .ov-cap{font-family:'Space Mono',monospace;font-size:.75rem;color:#ddd;font-style:italic;line-height:1.4}
+
+/* Staggered reveal for grid */
+.grid-item.reveal-hidden{opacity:0;transform:translate3d(0, 40px, 0) scale(.95) rotate(-1deg)}
+.grid-item.reveal-visible{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0deg);transition:all .8s var(--ease-out-expo)}
+
+/* ════════════════════════════════════════
+   VIDEO SECTION
+   ════════════════════════════════════════ */
+.video-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:30px;
+  max-width:1200px;margin:0 auto;
+}
+.vid-wrap{
+  position:relative;border:2px solid rgba(255,0,170,.4);overflow:hidden;
+  transition:all .5s var(--ease-out-quart);background:var(--dark);cursor:pointer;aspect-ratio:16/9;
+  transform: translateZ(0);
+}
+.vid-wrap:hover{
+  transform:scale(1.03) translateZ(0);
+  border-color:var(--neon-yellow);
+  box-shadow:0 15px 40px rgba(0,0,0,.6), 0 0 30px rgba(255,0,170,.25);
+}
+.vid-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.vid-wrap .vid-meta{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;gap:12px;
+  background:rgba(0,0,0,.7);opacity:1;transition:opacity .4s var(--ease-out-quart);pointer-events:none;
+}
+.vid-wrap:hover .vid-meta{opacity:0}
+.vid-wrap.playing .vid-meta{opacity:0}
+.vid-meta .play-btn{
+  font-size:2.8rem;color:#fff;text-shadow:0 0 25px rgba(0,240,255,.8);
+  transition:transform .4s var(--ease-out-quart);
+}
+.vid-wrap:hover .play-btn{transform:scale(1.2)}
+.vid-meta .vid-info{
+  font-family:'VT323',monospace;font-size:1.2rem;color:var(--neon-cyan);
+  text-align:center;letter-spacing:1px;
+}
+.vid-meta .vid-info .vid-dur{color:var(--neon-yellow);display:block;font-size:1rem;margin-top:4px}
+.vid-meta .vid-info .vid-year{color:#888;font-size:.85rem;display:block;margin-top:4px;letter-spacing:3px}
+
+/* Video hover overlay */
+.vid-hover-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.75);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;
+  opacity:0;transition:opacity .4s var(--ease-out-quart);pointer-events:none;
+}
+.vid-wrap:hover .vid-hover-overlay{opacity:1}
+.vid-wrap.playing .vid-hover-overlay{opacity:0}
+.vid-hover-overlay .hov-play{font-family:'VT323',monospace;font-size:2.2rem;color:#fff;letter-spacing:5px; text-shadow:0 0 15px rgba(255,255,255,.5)}
+.vid-hover-overlay .hov-dur{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--neon-yellow)}
+.vid-hover-overlay .hov-year{font-family:'Space Mono',monospace;font-size:.7rem;color:#999;letter-spacing:2px}
+
+/* Video decryption overlay */
+.vid-decrypt{
+  position:absolute;inset:0;background:rgba(0,0,0,.97);z-index:20;
+  display:none;flex-direction:column;justify-content:center;align-items:center;gap:15px;
+}
+.vid-decrypt.active{display:flex}
+.vid-decrypt .decrypt-text{
+  font-family:'VT323',monospace;font-size:1.5rem;color:var(--terminal-green);letter-spacing:3px;
+}
+.vid-decrypt .decrypt-label{
+  font-family:'Space Mono',monospace;font-size:.75rem;color:#666;letter-spacing:2px;
+}
+.vid-decrypt .decrypt-bar{
+  width:220px;height:3px;background:rgba(0,240,255,.15);overflow:hidden;
+}
+.vid-decrypt .decrypt-fill{
+  height:100%;width:0%;background:var(--neon-cyan);box-shadow:0 0 12px var(--neon-cyan);
+  transition:width .08s linear;
+}
+
+/* ════════════════════════════════════════
+   MESSAGE + TERMINAL LETTER
+   ════════════════════════════════════════ */
+.msg-section{
+  padding:140px 20px;text-align:center;
+  background:radial-gradient(circle at center,rgba(255,0,170,.06),transparent 70%);
+}
+.msg-text{
+  font-family:'Oswald',sans-serif;font-size:clamp(1.4rem,3.8vw,2.8rem);
+  max-width:850px;margin:0 auto;line-height:1.45;
+}
+.msg-text .highlight{color:var(--neon-pink);text-shadow:0 0 15px rgba(255,0,170,.6)}
+.msg-text .highlight2{color:var(--neon-cyan);text-shadow:0 0 15px rgba(0,240,255,.6)}
+.msg-text .highlight3{color:var(--neon-yellow);text-shadow:0 0 15px rgba(240,255,0,.6)}
+
+/* Terminal letter */
+.terminal-letter{
+  max-width:720px;margin:70px auto 0;text-align:left;
+  background:rgba(0,0,0,.75);border:1px solid rgba(0,240,255,.3);
+  padding:35px;font-family:'VT323',monospace;font-size:1.3rem;line-height:1.75;
+  color:var(--terminal-green);
+  box-shadow:0 0 40px rgba(0,240,255,.08),inset 0 0 40px rgba(0,240,255,.03);
+  position:relative;overflow:hidden;
+}
+.terminal-letter::before{
+  content:'user@friendship-archive:~$ cat letter.txt';
+  display:block;color:#666;font-size:.9rem;margin-bottom:18px;
+  border-bottom:1px solid rgba(0,240,255,.15);padding-bottom:12px;letter-spacing:1px;
+}
+.terminal-letter .type-cursor{
+  display:inline-block;width:9px;height:1.15em;background:var(--terminal-green);
+  animation:cursorBlink .8s infinite;vertical-align:text-bottom;margin-left:4px;
+}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.terminal-letter .type-done .type-cursor{display:none}
+
+/* Secret ending trigger after letter */
+.trigger-secret{
+  display:none;margin-top:30px;
+  font-family:'VT323',monospace;font-size:1.15rem;color:#555;
+  letter-spacing:2px;text-align:center;
+  animation:secretPulse 3s var(--ease-in-out-circ) infinite;
+}
+.trigger-secret.visible{display:block}
+@keyframes secretPulse{0%,100%{color:#444}50%{color:var(--neon-pink);text-shadow:0 0 8px rgba(255,0,170,.5)}}
+
+.audio-viz{
+  display:flex;gap:4px;justify-content:center;align-items:flex-end;
+  height:45px;margin:35px 0;
+}
+.viz-bar{
+  width:6px;border-radius:3px;will-change:height;
+  animation:vizDance .6s var(--ease-in-out-circ) infinite alternate;
+}
+.viz-bar:nth-child(3n){animation-duration:.4s;background:var(--neon-yellow)}
+.viz-bar:nth-child(3n+1){background:var(--neon-pink)}
+.viz-bar:nth-child(3n+2){background:var(--neon-cyan)}
+@keyframes vizDance{0%{height:15%}100%{height:100%}}
+
+/* ════════════════════════════════════════
+   SECRET ENDING
+   ════════════════════════════════════════ */
+.secret-ending{
+  position:fixed;inset:0;z-index:15000;background:var(--darker);
+  display:none;flex-direction:column;justify-content:center;align-items:center;
+  opacity:0;transition:opacity 1.5s var(--ease-out-quart);
+}
+.secret-ending.active{display:flex}
+.secret-ending.visible{opacity:1}
+.secret-ending .transmission{
+  font-family:'VT323',monospace;font-size:1.7rem;color:var(--neon-cyan);
+  text-align:center;margin-bottom:30px;line-height:1.8;letter-spacing:2px;
+}
+.secret-ending .final-progress{
+  width:340px;height:4px;background:rgba(0,240,255,.15);margin:25px auto;
+  overflow:hidden;
+}
+.secret-ending .final-fill{
+  height:100%;width:0%;background:var(--neon-cyan);box-shadow:0 0 15px var(--neon-cyan);
+  transition:width .12s linear;
+}
+.secret-ending .final-btn{
+  margin-top:35px;padding:18px 48px;background:transparent;
+  border:2px solid var(--neon-pink);color:var(--neon-pink);
+  font-family:'Oswald',sans-serif;font-size:1.2rem;text-transform:uppercase;
+  letter-spacing:4px;cursor:pointer;transition:all .5s var(--ease-out-expo);
+  opacity:0;transform:translate3d(0, 20px, 0);
+}
+.secret-ending .final-btn.visible{opacity:1;transform:translate3d(0,0,0)}
+.secret-ending .final-btn:hover{
+  background:var(--neon-pink);color:#fff;
+  box-shadow:0 0 30px rgba(255,0,170,.6), 0 0 60px rgba(255,0,170,.3);
+  transform:scale(1.05);
+}
+
+.secret-ending .final-memory{
+  display:none;flex-direction:column;align-items:center;gap:35px;
+  max-width:680px;padding:45px;text-align:center;
+}
+.secret-ending .final-memory.active{display:flex}
+.secret-ending .final-memory img{
+  max-width:100%;max-height:50vh;object-fit:contain;
+  border-radius:12px;box-shadow:0 40px 80px rgba(0,0,0,.8);
+}
+.secret-ending .final-memory .final-text{
+  font-family:'Oswald',sans-serif;font-size:clamp(1.15rem,2.5vw,1.8rem);
+  color:#e0e0e0;line-height:1.75;max-width:500px;
+}
+.secret-ending .final-memory .final-text em{
+  color:#fff;font-style:normal;font-weight:700;
+  text-shadow:0 0 25px rgba(255,255,255,.4);
+}
+.secret-ending .final-close{
+  position:absolute;top:25px;right:35px;background:none;border:none;
+  color:#666;font-size:1.6rem;cursor:pointer;font-family:'VT323',monospace;
+  letter-spacing:3px;transition:color .3s var(--ease-out-quart);
+}
+.secret-ending .final-close:hover{color:var(--neon-pink);text-shadow:0 0 10px rgba(255,0,170,.5)}
+
+/* ════════════════════════════════════════
+   EASTER EGG TOASTS
+   ════════════════════════════════════════ */
+.egg-toast{
+  position:fixed;top:30px;right:30px;z-index:16000;
+  background:rgba(0,0,0,.95);border:1px solid var(--neon-yellow);
+  padding:18px 28px;font-family:'VT323',monospace;font-size:1.15rem;
+  color:var(--neon-yellow);box-shadow:0 0 30px rgba(240,255,0,.25);
+  transform:translate3d(150%, 0, 0);transition:transform .6s var(--ease-out-expo);
+  max-width:320px;
+}
+.egg-toast.visible{transform:translate3d(0, 0, 0)}
+.egg-toast .egg-title{color:var(--neon-pink);font-size:1.4rem;margin-bottom:6px;letter-spacing:1px}
+.egg-toast .egg-sub{color:#888;font-size:.95rem;line-height:1.4}
+
+/* Developer mode overlay */
+.dev-mode-overlay{
+  position:fixed;top:80px;left:0;right:0;z-index:8000;
+  font-family:'VT323',monospace;text-align:center;
+  color:rgba(0,255,65,.5);font-size:1.6rem;letter-spacing:4px;
+  pointer-events:none;display:none;animation:devScroll 20s linear infinite;
+}
+.dev-mode-overlay.active{display:block}
+@keyframes devScroll{0%{transform:translateY(-15px)}50%{transform:translateY(15px)}100%{transform:translateY(-15px)}}
+
+/* ════════════════════════════════════════
+   FOOTER & MISC
+   ════════════════════════════════════════ */
+footer{
+  padding:70px 20px;text-align:center;border-top:1px solid rgba(255,0,170,.25);
+  position:relative;z-index:10;
+}
+footer p{font-size:.8rem;color:#666;letter-spacing:3px}
+footer .big-text{
+  font-family:'Rubik Mono One',sans-serif;font-size:clamp(2rem,4vw,3.8rem);
+  color:var(--neon-pink);margin:18px 0;opacity:.25;
+}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--darker)}
+::-webkit-scrollbar-thumb{background:var(--neon-pink);border-radius:3px}
+
+.floater{
+  position:fixed;font-family:'Rubik Mono One',sans-serif;
+  font-size:8rem;color:rgba(255,0,170,.025);pointer-events:none;z-index:0;
+  white-space:nowrap;animation:floatAround 30s linear infinite;
+}
+@keyframes floatAround{
+  0%{transform:translate3d(-10vw,40vh,0) rotate(0deg)}
+  50%{transform:translate3d(80vw,60vh,0) rotate(180deg)}
+  100%{transform:translate3d(-10vw,40vh,0) rotate(360deg)}
+}
+
+/* ════════════════════════════════════════
+   LIGHTBOX
+   ════════════════════════════════════════ */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:10000;
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  padding:20px;
+}
+.lightbox.active{display:flex}
+.lightbox img{max-width:90%;max-height:80vh;object-fit:contain;border:2px solid var(--neon-cyan);box-shadow:0 0 60px rgba(0,240,255,.4)}
+.lightbox .lb-close{position:absolute;top:25px;right:35px;color:#fff;font-size:2.2rem;cursor:pointer;z-index:10001;transition:color .3s var(--ease-out-quart); padding:10px}
+.lightbox .lb-close:hover{color:var(--neon-pink);text-shadow:0 0 15px rgba(255,0,170,.6)}
+.lightbox .lb-nav{position:absolute;top:50%;transform:translate3d(0, -50%, 0);font-size:2.5rem;color:#fff;cursor:pointer;padding:25px;opacity:.5;transition:opacity .3s var(--ease-out-quart),color .3s var(--ease-out-quart)}
+.lightbox .lb-nav:hover{opacity:1;color:var(--neon-cyan);text-shadow:0 0 15px rgba(0,240,255,.6)}
+.lightbox .lb-prev{left:15px}
+.lightbox .lb-next{right:15px}
+.lb-caption{font-family:'VT323',monospace;color:var(--neon-cyan);font-size:1.1rem;margin-top:18px;letter-spacing:3px}
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════ */
+@media(max-width:768px){
+  .countdown-chaos{gap:8px}
+  .cd-box{padding:10px 14px;min-width:70px}
+  .cd-box .num{font-size:1.6rem}
+  .beginning-photo .polaroid img{max-width:280px}
+  nav{padding:12px 18px}
+  .nav-logo{font-size:1.1rem}
+  .video-grid{grid-template-columns:1fr}
+  .loading-screen .terminal{padding:24px}
+  .loading-screen .term-line{font-size:1.15rem}
+  .terminal-letter{padding:24px;font-size:1.1rem}
+  .archive-stats{gap:12px}
+  .egg-toast{right:10px;top:10px;max-width:250px}
+  .secret-ending .transmission{font-size:1.2rem}
+}
+</style>
+</head>
+<body class="crt">
+
+<!-- ════════════════════════════════════════
+     LOADING SCREEN
+     ════════════════════════════════════════ -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="terminal">
+    <div class="term-header">
+      <span>MEMORY_ARCHIVE_v2.2</span> — SYSTEM BOOT &nbsp;|&nbsp; CLASSIFIED
+    </div>
+    <div class="term-line" id="t1">> Initializing Memory Archive...</div>
+    <div class="progress-row" id="pr1">
+      <div class="progress-bar"><div class="progress-fill" id="p1"></div></div>
+      <span class="progress-pct" id="pp1">0%</span>
+    </div>
+    <div class="term-line" id="t2">> Scanning Memories...</div>
+    <div class="progress-row" id="pr2">
+      <div class="progress-bar"><div class="progress-fill" id="p2"></div></div>
+      <span class="progress-pct" id="pp2">0%</span>
+    </div>
+    <div class="term-line" id="t3">> Restoring Friendship Database...</div>
+    <div class="progress-row" id="pr3">
+      <div class="progress-bar"><div class="progress-fill" id="p3"></div></div>
+      <span class="progress-pct" id="pp3">0%</span>
+    </div>
+    <div class="term-line warn" id="t4">> Warning: 3 corrupted files detected</div>
+    <div class="term-line done" id="t5">> Loading Complete. &nbsp;█</div>
+  </div>
+  <div class="glitch-exit"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     OVERLAYS
+     ════════════════════════════════════════ -->
+<div class="noise"></div>
+<canvas id="fx-canvas"></canvas>
+<div class="section-transition" id="sectTrans"></div>
+<div class="memory-toast" id="memToast">Memory Restored</div>
+<div class="egg-toast" id="eggToast"><div class="egg-title"></div><div class="egg-sub"></div></div>
+<div class="dev-mode-overlay" id="devMode">
+  DEVELOPER_MODE_ACTIVE &nbsp;// FRIENDSHIP_LEVEL: 999999 &nbsp;// ACCESS_GRANTED
+</div>
+
+<div class="floater" style="top:20%;left:-10%;animation-delay:0s">22 YEARS</div>
+<div class="floater" style="top:60%;left:80%;animation-delay:-14s;font-size:5rem;color:rgba(0,240,255,.018)">TETEA</div>
+
+<!-- ════════════════════════════════════════
+     NAV
+     ════════════════════════════════════════ -->
+<nav id="mainNav" aria-label="Main Navigation">
+  <a href="#" class="nav-logo" aria-label="Home">TETEA_22</a>
+  <div style="display:flex;gap:20px">
+    <a href="#beginning">BEGINNING</a>
+    <a href="#photos">PHOTOS</a>
+    <a href="#videos">VIDEOS</a>
+    <a href="#message">MSG</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════
+     HERO
+     ════════════════════════════════════════ -->
+<section class="hero" id="beginning">
+  <div class="hero-bg-photos" id="heroBg"></div>
+
+  <div class="hero-signal" id="heroSignal">
+    <div class="static-overlay"></div>
+    <div class="no-signal" id="noSignalText">NO SIGNAL</div>
+    <div class="signal-status" id="signalStatus"></div>
+  </div>
+
+  <div class="beginning-photo photo-hidden" id="beginningPhoto" tabindex="0" aria-label="Childhood Photo">
+    <div class="label">▼ XBizzard ▼</div>
+    <div class="polaroid" id="heroPolaroid">
+      <img src="photos/khanglang.jpeg" alt="Khanglang" id="heroChildImg" loading="eager" decoding="async">
+    </div>
+  </div>
+
+  <h1 class="glitch-title" id="heroTitle">
+    <span>LALTLANKIMA CHHANGTE</span>
+    <span class="line2">22 YEARS</span>
+  </h1>
+  <p class="sub-glitch" id="heroSub">/// FROM THIS MOMENT TO NOW ///</p>
+  <div class="age-display" id="ageDisplay">
+    <span class="counter-num" id="ageCounter">0</span>
+  </div>
+
+  <div class="countdown-chaos" id="countdownChaos">
+    <div class="cd-box"><span class="num" id="cdD">00</span><span class="lbl">DAYS</span></div>
+    <div class="cd-box"><span class="num" id="cdH">00</span><span class="lbl">HRS</span></div>
+    <div class="cd-box"><span class="num" id="cdM">00</span><span class="lbl">MIN</span></div>
+    <div class="cd-box"><span class="num" id="cdS">00</span><span class="lbl">SEC</span></div>
+  </div>
+
+  <button class="chaos-btn" id="chaosBtn" onclick="triggerUltraChaos()" aria-label="Initiate Ultra Chaos">INITIATE ULTRA CHAOS</button>
+</section>
+
+<!-- ════════════════════════════════════════
+     VISUAL CHAOS
+     ════════════════════════════════════════ -->
+<section style="padding:100px 20px;overflow:hidden" id="photos">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2 class="section-header">VISUAL_CHAOS</h2>
+    <p class="section-note">// 24 FRAGMENTS FROM THE TIMELINE // SOME WITH HIDDEN STORIES //</p>
+  </div>
+  <div class="photo-scatter" id="scatterWall"></div>
+</section>
+
+<!-- ════════════════════════════════════════
+     MEMORY ARCHIVE
+     ════════════════════════════════════════ -->
+<section style="padding:80px 20px" id="archive">
+  <div style="max-width:1400px;margin:0 auto">
+    <h2 class="section-header">MEMORY_ARCHIVE</h2>
+    <div class="archive-stats">
+      <div class="archive-stat"><span class="stat-num" id="statRestored">0</span> <span class="stat-label">Memories Restored</span></div>
+      <div class="archive-stat"><span class="stat-num" style="color:var(--neon-pink)">3</span> <span class="stat-label">Corrupted Files</span></div>
+      <div class="archive-stat"><span class="stat-num" style="color:var(--neon-yellow)">∞</span> <span class="stat-label">Unforgettable Moments</span></div>
+    </div>
+    <p class="section-note">// ALL REMAINING FILES // HOVER TO DECRYPT METADATA //</p>
+    <div class="photo-grid" id="photoGrid"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     MOTION DATA
+     ════════════════════════════════════════ -->
+<section style="padding:100px 20px;background:rgba(255,0,170,.02)" id="videos">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2 class="section-header">MOTION_DATA</h2>
+    <p class="section-note">// VIDEO FRAGMENTS // HOVER TO PREVIEW // CLICK TO DECRYPT //</p>
+  </div>
+  <div class="video-grid" id="videoGrid"></div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FINAL MESSAGE
+     ════════════════════════════════════════ -->
+<section class="msg-section" id="message">
+  <div class="audio-viz" id="audioViz"></div>
+  <div class="msg-text">
+    <p>HEY <span class="highlight" id="scrambleName">TETEA</span>,</p>
+    <p style="margin-top:15px">FROM THAT KID IN THE PHOTO TO THE MAN YOU ARE NOW.</p>
+    <p style="margin-top:15px"><span class="highlight2">22 ORBITS</span>. <span class="highlight3">8035 DAYS</span>.</p>
+    <p style="margin-top:15px">THAT'S <span class="highlight">A LOT OF CHAOS</span>.</p>
+    <p style="margin-top:20px;font-size:.6em;color:#777">AND IT ALL STARTED WITH THAT ONE MOMENT.</p>
+  </div>
+  <div class="audio-viz" id="audioViz2"></div>
+
+  <!-- Terminal Letter -->
+  <div class="terminal-letter" id="terminalLetter">
+    <div id="letterContent"></div><span class="type-cursor" id="typeCursor"></span>
+  </div>
+
+  <button class="trigger-secret" id="triggerSecret" aria-label="Open hidden file" style="background:none;border:none;width:100%">
+    &gt; transmission_complete.exe &nbsp;—&nbsp; <span style="color:var(--neon-cyan)">1 hidden file found</span>
+  </button>
+</section>
+
+<!-- ════════════════════════════════════════
+     FOOTER
+     ════════════════════════════════════════ -->
+<footer>
+  <p>/// SYSTEM BIRTHDAY_WISH DELIVERED ///</p>
+  <div class="big-text">HAPPY BIRTHDAY</div>
+  <p>JULY 6TH, 2026 — TETEA TURNS 22</p>
+</footer>
+
+<!-- ════════════════════════════════════════
+     LIGHTBOX
+     ════════════════════════════════════════ -->
+<div class="lightbox" id="lightbox" onclick="if(event.target===this||event.target.classList.contains('lb-close'))closeLightbox()" aria-label="Image Lightbox">
+  <button class="lb-close" onclick="closeLightbox()" aria-label="Close Lightbox" style="background:none;border:none">&times;</button>
+  <button class="lb-nav lb-prev" onclick="event.stopPropagation();lbPrev()" aria-label="Previous Image" style="background:none;border:none">&#9664;</button>
+  <button class="lb-nav lb-next" onclick="event.stopPropagation();lbNext()" aria-label="Next Image" style="background:none;border:none">&#9654;</button>
+  <img id="lbImg" src="" alt="Enlarged Memory" loading="lazy" decoding="async">
+  <p class="lb-caption" id="lbCaption">memory fragment</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     SECRET ENDING
+     ════════════════════════════════════════ -->
+<div class="secret-ending" id="secretEnding">
+  <button class="final-close" onclick="closeSecretEnding()" aria-label="Close Secret Ending">[ CLOSE ]</button>
+
+  <div class="transmission" id="transPhase1">
+    <div>Transmission Complete</div>
+    <div style="color:#777;font-size:1.1rem;margin-top:12px">Friendship Database</div>
+    <div class="final-progress"><div class="final-fill" id="finalFill1"></div></div>
+    <div style="color:var(--neon-cyan)">100%</div>
+  </div>
+
+  <div class="transmission" id="transPhase2" style="display:none">
+    <div style="color:var(--neon-yellow)">One Last File Found...</div>
+  </div>
+
+  <button class="final-btn" id="finalBtn" onclick="revealFinalMemory()">Open Final Memory</button>
+
+  <div class="final-memory" id="finalMemory">
+    <img src="photos/WhatsApp%20Image%202026-07-05%20at%207.20.33%20AM.jpeg" alt="Final Memory" id="finalMemoryImg" loading="lazy" decoding="async">
+    <div class="final-text">
+      No matter where life takes us,<br>
+      I hope we keep making memories together.<br><br>
+      <em>Happy Birthday, brother.</em>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   LENIS SMOOTH SCROLL INIT
+   ════════════════════════════════════════════ */
+const lenis = new Lenis({
+  duration: 1.4,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Awwwards standard expo easing
+  direction: 'vertical',
+  gestureDirection: 'vertical',
+  smooth: true,
+  smoothTouch: false,
+  touchMultiplier: 2,
+});
+
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+/* ════════════════════════════════════════════
+   DATA ARRAYS
+   ════════════════════════════════════════════ */
+const SCATTER = [
+  "tetea1.jpg","tetea2.jpg","tetea3.jpg","tetea4.jpg","tetea5.jpg",
+  "tetea6.jpg","tetea7.jpg","tetea8.jpg",
+  "WhatsApp Image 2026-07-05 at 2.21.34 PM.jpeg",
+  "WhatsApp Image 2026-07-05 at 2.21.35 PM (1).jpeg",
+  "WhatsApp Image 2026-07-05 at 2.21.35 PM (2).jpeg",
+  "WhatsApp Image 2026-07-05 at 2.21.35 PM.jpeg",
+  "WhatsApp Image 2026-07-05 at 2.21.36 PM (2).jpeg",
+  "WhatsApp Image 2026-07-05 at 7.14.29 AM.jpeg",
+  "WhatsApp Image 2026-07-05 at 7.16.23 AM.jpeg",
+  "WhatsApp Image 2026-07-05 at 7.19.50 AM (1).jpeg",
+  "WhatsApp Image 2026-07-05 at 7.19.50 AM.jpeg",
+  "WhatsApp Image 2026-07-05 at 7.21.05 AM.jpeg",
+  "WhatsApp Image 2026-07-05 at 7.23.46 AM.jpeg",
+  "IMG20250905155752.jpg","IMG20250905155754.jpg",
+  "IMG_20230625_162514_130.jpg","IMG20221005154004-COLLAGE.jpg","1751792838672.jpg"
+];
+
+const GRID = [
+  "1657034482364.jpg","1672681697040.jpg","IMG-20220410-WA0006.jpg",
+  "IMG-20221007-WA0078.jpg","IMG-20221007-WA0081.jpg","IMG-20221007-WA0084.jpg",
+  "IMG-20221008-WA0036.jpg","IMG-20230102-WA0034.jpg","IMG-20230102-WA0036.jpg",
+  "IMG-20230625-WA0034.jpg","IMG-20230625-WA0063.jpg","IMG-20230625-WA0116.jpg",
+  "IMG-20230625-WA0126.jpg","IMG-20230625-WA0128.jpg","IMG-20230706-WA0006.jpg",
+  "IMG-20230706-WA0007.jpg","IMG-20230706-WA0021.jpg","IMG-20231028-WA0007.jpeg",
+  "IMG-20231220-WA0807.jpg","IMG-20231223-WA0016.jpg","IMG-20231223-WA0021.jpg",
+  "IMG-20240326-WA0045.jpg","IMG-20240326-WA0047.jpg","IMG-20240417-WA0016.jpg",
+  "IMG-20240804-WA0004.jpg","IMG-20240804-WA0015.jpg","IMG-20240821-WA0039.jpg",
+  "IMG-20250803-WA0021.jpg","IMG-20250803-WA0022.jpg","IMG-20250803-WA0027.jpg",
+  "IMG-20250803-WA0028.jpg","IMG-20250810-WA0162.jpg","IMG-20250810-WA0222.jpg",
+  "IMG-20250816-WA0153.jpg","IMG-20250905-WA0203.jpg","IMG-20250905-WA0217.jpg",
+  "IMG-20250905-WA0221.jpg","IMG-20250905-WA0261.jpg","IMG-20250912-WA0064.jpg",
+  "IMG-20250912-WA0080.jpg","IMG20211224205232.jpg","IMG20211224220113.jpg",
+  "IMG20211224220115.jpg","IMG20211224222146.jpg","IMG20211224222231.jpg",
+  "IMG20211224222304.jpg","IMG20211226100526.jpg","IMG20211226100533.jpg",
+  "IMG20211226100537.jpg","IMG20211226100543.jpg","IMG20220105105303.jpg",
+  "IMG20220105105305.jpg","IMG20220328195353.jpg","IMG20220329233623.jpg",
+  "IMG20220329233631.jpg","IMG20220417152642.jpg","IMG20220417152643.jpg",
+  "IMG20220529125259.jpg","IMG20220529125304.jpg","IMG20220604173603.jpg",
+  "IMG20220702160247.jpg","IMG20220723110457.jpg","IMG20220723110500.jpg",
+  "IMG20220723150920.jpg","IMG20220723163505.jpg","IMG20220729162529.jpg",
+  "IMG20220807124915.jpg","IMG20220807124916.jpg","IMG20220821144246.jpg",
+  "IMG20220902164344.jpg","IMG20220902164345.jpg","IMG20220902164348.jpg",
+  "IMG20220918113848.jpg","IMG20220918113853.jpg","IMG20220918122809.jpg",
+  "IMG20220918122810.jpg","IMG20220918144829.jpg","IMG20220918154527.jpg",
+  "IMG20221009120937.jpg","IMG20221124155612.jpg","IMG20221124161223.jpg",
+  "IMG20221124171706.jpg","IMG20221124171707.jpg","IMG20221126161318.jpg",
+  "IMG20221209132140.jpg","IMG20221209203319.jpg","IMG20221222085745.jpg",
+  "IMG20221222085856.jpg","IMG20221223084654.jpg","IMG20221223090259.jpg",
+  "IMG20221224224505.jpg","IMG20221224224814.jpg","IMG20230101002612.jpg",
+  "IMG20230102181215.jpg","IMG20230701153707.jpg","IMG20230701153914.jpg",
+  "IMG20230706073452.jpg","IMG20230706073506.jpg","IMG20230706073509.jpg",
+  "IMG20230716134642.jpg","IMG20230716134924.jpg","IMG20230716150939.jpg",
+  "IMG20230716151302.jpg",
+  "Screenshot_2021-06-28-19-15-48-81_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2021-06-28-19-24-11-93_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2021-06-28-19-24-58-18_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2021-07-15-14-36-13-30_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2021-07-15-14-40-58-94_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2021-07-15-14-52-24-28_2ef548bf47261a0f379d52645eb41568.jpg",
+  "Screenshot_2022-02-11-13-05-21-20_2ef548bf47261a0f379d52645eb41568.jpg"
+];
+
+const VIDS = [
+  "VID-20220706-WA0024.mp4","VID-20221204-WA0020.mp4","VID-20230102-WA0064.mp4",
+  "VID-20230604-WA0054.mp4","VID-20230604-WA0056.mp4","VID-20230625-WA0022.mp4",
+  "VID-20230701-WA0066.mp4","VID-20230716-WA0065.mp4","VID-20231223-WA0004.mp4",
+  "VID-20231223-WA0005.mp4","VID-20231223-WA0012.mp4","VID-20231223-WA0033.mp4",
+  "VID-20240326-WA0458.mp4","VID-20240329-WA0011.mp4","VID-20240408-WA0053.mp4",
+  "VID-20240616-WA0016.mp4","VID-20240821-WA0028.mp4","VID-20240821-WA0054.mp4",
+  "VID-20250803-WA0042.mp4","VID-20250803-WA0043.mp4","VID-20250905-WA0111.mp4",
+  "VID-20250905-WA0193.mp4","VID20221007154022.mp4","VID20250909034341.mp4",
+  "VID20250909034446.mp4","VID20250909092323.mp4","WhatsApp Video 2026-07-05 at 7.15.40 AM.mp4"
+];
+
+// Extract year from filename
+function extractYear(name) {
+  const m = name.match(/202[0-9]/);
+  return m ? m[0] : '2022';
+}
+
+// Grid photo metadata
+const GRID_META = [
+  {loc:"📍 Aizawl",date:"Jun 2021",cap:"Birthday Wish😭"},
+  {loc:"📍 Aizawl",date:"Dec 2021",cap:"Ruaitheh zawh band"},
+  {loc:"📍 Aizawl",date:"Apr 2022",cap:"Sisters"},
+  {loc:"📍 Aizawl",date:"Oct 2022",cap:"Carmel Hostel chhuak"},
+  {loc:"📍 Aizawl",date:"Oct 2022",cap:"Senior Meet."},
+  {loc:"📍 Aizawl",date:"Oct 2022",cap:"Peak chaos."},
+  {loc:"📍 Aizawl",date:"Oct 2022",cap:"Random 🔥"},
+  {loc:"📍 Aizawl",date:"Jan 2023",cap:"New year, same madness"},
+  {loc:"📍 Aizawl",date:"Jan 2023",cap:"Mission Vengtlang nen 😂"},
+  {loc:"📍 Aizawl",date:"Jun 2023",cap:"Tlachawp Band"},
+  {loc:"📍 Aizawl",date:"Jun 2023",cap:"You always find trouble"},
+  {loc:"📍 Aizawl",date:"Jun 2023",cap:"Mission accomplished"},
+  {loc:"📍 Aizawl",date:"Jun 2023",cap:"Iconic shot"},
+  {loc:"📍 Aizawl",date:"Jun 2023",cap:"Couldn't stop laughing"},
+  {loc:"📍 Unknown",date:"Jul 2023",cap:"Random but perfect"},
+  {loc:"📍 Aizawl",date:"Jul 2023",cap:"The look says it all"},
+  {loc:"📍 Aizawl",date:"Jul 2023",cap:"We really did that"},
+  {loc:"📍 Somewhere",date:"Oct 2023",cap:"This one hits different"},
+  {loc:"📍 Aizawl",date:"Dec 2023",cap:"Drummerrrr"},
+  {loc:"📍 Aizawl",date:"Dec 2023",cap:"Samsei eraaa"},
+  {loc:"📍 Aizawl",date:"Dec 2023",cap:"I miss this already"},
+  {loc:"📍 Aizawl",date:"Mar 2024",cap:"TopG😂"},
+  {loc:"📍 Aizawl",date:"Mar 2024",cap:"Frame worthy"},
+  {loc:"📍 Aizawl",date:"Apr 2024",cap:"Caught you slipping 📸"},
+];
+
+// Scatter captions
+const SCATTER_CAPTIONS = [
+  null,null,"Still one of my favourite memories.",null,
+  "Never forgetting this day.",null,"Peak chaos.",null,
+  null,"We really did that.",null,null,
+  null,null,null,null,
+  null,"The chaos never ends.",null,null,null,null,null,null,null
+];
+
+/* ════════════════════════════════════════════
+   LOADING SCREEN
+   ════════════════════════════════════════════ */
+function runLoadingSequence() {
+  const steps = [
+    {line:'t1', prog:'p1', pct:'pp1', row:'pr1', delay:300, dur:700},
+    {line:'t2', prog:'p2', pct:'pp2', row:'pr2', delay:1100, dur:600},
+    {line:'t3', prog:'p3', pct:'pp3', row:'pr3', delay:1900, dur:800},
+    {line:'t4', prog:null, pct:null, row:null, delay:2900, dur:0},
+    {line:'t5', prog:null, pct:null, row:null, delay:3200, dur:0},
+  ];
+
+  steps.forEach(s => {
+    setTimeout(() => {
+      const el = document.getElementById(s.line);
+      if (el) el.classList.add('visible');
+      if (s.row) {
+        document.getElementById(s.row).classList.add('visible');
+        animateProgress(s.prog, s.pct, s.dur);
+      }
+    }, s.delay);
+  });
+
+  // Glitch then hide
+  setTimeout(() => {
+    document.getElementById('loadingScreen').classList.add('glitching');
+  }, 3800);
+  setTimeout(() => {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    startHeroSequence();
+  }, 4400);
+}
+
+function animateProgress(fillId, pctId, duration) {
+  const fill = document.getElementById(fillId);
+  const pct = document.getElementById(pctId);
+  if (!fill) return;
+  let val = 0;
+  const step = 100 / (duration / 30);
+  const iv = setInterval(() => {
+    val = Math.min(100, val + step + Math.random() * 6);
+    fill.style.width = val + '%';
+    if (pct) pct.textContent = Math.round(val) + '%';
+    if (val >= 100) clearInterval(iv);
+  }, 30);
+}
+
+/* ════════════════════════════════════════════
+   HERO SIGNAL RESTORATION
+   ════════════════════════════════════════════ */
+function startHeroSequence() {
+  const noSig = document.getElementById('noSignalText');
+  const status = document.getElementById('signalStatus');
+  const signal = document.getElementById('heroSignal');
+  const photo = document.getElementById('beginningPhoto');
+  const img = document.getElementById('heroChildImg');
+  const polaroid = document.getElementById('heroPolaroid');
+
+  // Flicker no signal
+  noSig.style.animation = 'signalFlicker 1s infinite';
+
+  setTimeout(() => {
+    status.textContent = '> SIGNAL DETECTED...';
+    status.classList.add('active');
+  }, 800);
+
+  setTimeout(() => {
+    status.textContent = '> SIGNAL RESTORED ✓';
+    noSig.style.opacity = '0';
+  }, 1600);
+
+  setTimeout(() => {
+    signal.classList.add('restored');
+    // Start image scan reveal
+    img.classList.add('scanning');
+    photo.classList.remove('photo-hidden');
+    photo.classList.add('photo-visible');
+  }, 2300);
+
+  setTimeout(() => {
+    polaroid.classList.add('powered-on');
+  }, 4000);
+
+  // Title sequence
+  setTimeout(() => {
+    document.getElementById('heroTitle').classList.add('title-visible');
+  }, 4400);
+  setTimeout(() => {
+    document.getElementById('heroSub').classList.add('visible');
+  }, 4900);
+  setTimeout(() => {
+    document.getElementById('ageDisplay').classList.add('visible');
+    animateAgeCounter();
+  }, 5200);
+  setTimeout(() => {
+    document.getElementById('countdownChaos').classList.add('visible');
+    updateCountdown();
+  }, 5600);
+  setTimeout(() => {
+    document.getElementById('chaosBtn').classList.add('visible');
+  }, 6000);
+}
+
+/* ════════════════════════════════════════════
+   AGE COUNTER 0 → 22
+   ════════════════════════════════════════════ */
+function animateAgeCounter() {
+  const el = document.getElementById('ageCounter');
+  let val = 0;
+  const total = 22;
+  const duration = 2200;
+  const steps = 60;
+  const interval = duration / steps;
+  const iv = setInterval(() => {
+    val++;
+    el.textContent = val;
+    el.classList.add('tick');
+    setTimeout(() => el.classList.remove('tick'), 80);
+    if (val >= total) clearInterval(iv);
+  }, interval);
+}
+
+/* ════════════════════════════════════════════
+   COUNTDOWN TIMER
+   ════════════════════════════════════════════ */
+function updateCountdown() {
+  const birthday = new Date('July 6, 2026 00:00:00').getTime();
+  function tick() {
+    const now = Date.now();
+    let diff = birthday - now;
+    if (diff < 0) diff = 0;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cdD').textContent = String(d).padStart(2,'0');
+    document.getElementById('cdH').textContent = String(h).padStart(2,'0');
+    document.getElementById('cdM').textContent = String(m).padStart(2,'0');
+    document.getElementById('cdS').textContent = String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ════════════════════════════════════════════
+   HERO BACKGROUND
+   ════════════════════════════════════════════ */
+function buildHeroBg() {
+  const bg = document.getElementById('heroBg');
+  const sample = [...SCATTER].sort(() => Math.random() - 0.5).slice(0, 16);
+  sample.forEach(f => {
+    const img = document.createElement('img');
+    img.src = 'photos/' + encodeURIComponent(f);
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    bg.appendChild(img);
+  });
+}
+
+/* ════════════════════════════════════════════
+   VISUAL CHAOS — SCATTER
+   ════════════════════════════════════════════ */
+const scatterPositions = [
+  {top:5,left:2,rot:-8},{top:5,left:22,rot:4},{top:5,left:42,rot:-3},{top:5,left:62,rot:7},{top:5,left:80,rot:-5},
+  {top:28,left:10,rot:5},{top:28,left:30,rot:-6},{top:28,left:52,rot:3},{top:28,left:72,rot:-4},
+  {top:52,left:5,rot:-7},{top:52,left:25,rot:6},{top:52,left:45,rot:-2},{top:52,left:65,rot:8},{top:52,left:82,rot:-6},
+  {top:75,left:12,rot:4},{top:75,left:32,rot:-5},{top:75,left:55,rot:3},{top:75,left:75,rot:-7},
+  {top:18,left:50,rot:-4},{top:40,left:38,rot:6},{top:62,left:18,rot:-3},{top:15,left:72,rot:5},
+  {top:35,left:85,rot:-8},{top:58,left:38,rot:4},{top:80,left:58,rot:-5}
+];
+
+function buildScatter() {
+  const wall = document.getElementById('scatterWall');
+  SCATTER.slice(0, 24).forEach((file, i) => {
+    const pos = scatterPositions[i] || {
+      top: 5 + Math.random()*75, left: 2 + Math.random()*80, rot: (Math.random()-0.5)*16
+    };
+    const hoverRot = (Math.random()-0.5)*6;
+    // Parallax speed based on depth
+    const speed = (Math.random() - 0.5) * 0.15;
+
+    const wrap = document.createElement('div');
+    wrap.className = 's-img-wrap lenis-parallax';
+    wrap.style.cssText = `top:${pos.top}%;left:${pos.left}%;--base-rot:${pos.rot}deg;--hover-rot:${hoverRot}deg;`;
+    wrap.dataset.idx = i;
+    wrap.dataset.speed = speed;
+    wrap.tabIndex = 0;
+    wrap.setAttribute('aria-label', `Memory scatter item ${i+1}`);
+
+    const img = document.createElement('img');
+    img.className = 's-img';
+    img.src = 'photos/' + encodeURIComponent(file);
+    img.alt = 'Memory ' + (i+1);
+    img.loading = 'lazy';
+    img.decoding = 'async';
+
+    wrap.appendChild(img);
+    wrap.addEventListener('click', () => openScatterLightbox(i));
+    wrap.addEventListener('keydown', (e) => { if (e.key === 'Enter') openScatterLightbox(i); });
+
+    // Caption
+    if (SCATTER_CAPTIONS[i]) {
+      const cap = document.createElement('div');
+      cap.className = 's-caption';
+      cap.textContent = SCATTER_CAPTIONS[i];
+      wrap.appendChild(cap);
+    }
+
+    wall.appendChild(wrap);
+  });
+}
+
+// Lenis Parallax logic
+lenis.on('scroll', (e) => {
+  const scrollY = e.scroll;
+  document.querySelectorAll('.lenis-parallax').forEach(el => {
+    const speed = parseFloat(el.dataset.speed || 0);
+    const y = scrollY * speed;
+    el.style.setProperty('--parallax-y', `${y}px`);
+  });
+});
+
+// Random memory highlight every 15s
+function startMemoryHighlight() {
+  const toast = document.getElementById('memToast');
+  setInterval(() => {
+    const items = document.querySelectorAll('.s-img-wrap');
+    if (!items.length) return;
+    const idx = Math.floor(Math.random() * items.length);
+    const el = items[idx];
+    el.classList.add('highlighted');
+    toast.classList.add('visible');
+    setTimeout(() => {
+      el.classList.remove('highlighted');
+      toast.classList.remove('visible');
+    }, 2800);
+  }, 15000);
+}
+
+// Scatter lightbox
+let lbImages = [];
+let lbIndex = 0;
+
+function openScatterLightbox(idx) {
+  lbImages = SCATTER;
+  lbIndex = idx;
+  showLightboxImage();
+}
+function showLightboxImage() {
+  document.getElementById('lbImg').src = 'photos/' + encodeURIComponent(lbImages[lbIndex]);
+  document.getElementById('lbCaption').textContent = `memory fragment // ${lbIndex+1} of ${lbImages.length}`;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('active'); }
+function lbPrev() { lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length; showLightboxImage(); }
+function lbNext() { lbIndex = (lbIndex + 1) % lbImages.length; showLightboxImage(); }
+
+/* ════════════════════════════════════════════
+   MEMORY ARCHIVE GRID
+   ════════════════════════════════════════════ */
+function buildGrid() {
+  const grid = document.getElementById('photoGrid');
+  const statEl = document.getElementById('statRestored');
+  let revealed = 0;
+
+  GRID.forEach((file, i) => {
+    const meta = GRID_META[i] || {
+      loc: '📍 Unknown',
+      date: extractYear(file),
+      cap: 'Memory fragment #' + (i+1)
+    };
+
+    const item = document.createElement('div');
+    item.className = 'grid-item reveal-hidden';
+    item.tabIndex = 0;
+    item.setAttribute('aria-label', `Memory grid item ${i+1}`);
+    item.innerHTML = `
+      <img class="g-img" src="photos/${encodeURIComponent(file)}" alt="Memory ${i+1}" loading="lazy" decoding="async">
+      <div class="grid-overlay">
+        <div class="ov-loc">${meta.loc}</div>
+        <div class="ov-date">${meta.date}</div>
+        <div class="ov-cap">${meta.cap}</div>
+      </div>`;
+    item.addEventListener('click', () => {
+      lbImages = GRID;
+      lbIndex = i;
+      showLightboxImage();
+    });
+    item.addEventListener('keydown', (e) => { if (e.key === 'Enter') { lbImages = GRID; lbIndex = i; showLightboxImage(); } });
+    grid.appendChild(item);
+  });
+
+  // Staggered reveal on scroll with IntersectionObserver
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const delay = (parseInt(el.dataset.delay) || 0);
+        setTimeout(() => {
+          el.classList.remove('reveal-hidden');
+          el.classList.add('reveal-visible');
+          revealed++;
+          statEl.textContent = revealed;
+        }, delay);
+        observer.unobserve(el);
+      }
+    });
+  }, {rootMargin:'0px 0px -50px 0px', threshold:0.05});
+
+  grid.querySelectorAll('.grid-item').forEach((el, i) => {
+    el.dataset.delay = (i % 5) * 100;
+    observer.observe(el);
+  });
+}
+
+/* ════════════════════════════════════════════
+   VIDEO GRID
+   ════════════════════════════════════════════ */
+function buildVideos() {
+  const grid = document.getElementById('videoGrid');
+
+  VIDS.forEach((file, i) => {
+    const year = extractYear(file);
+    const wrap = document.createElement('div');
+    wrap.className = 'vid-wrap';
+    wrap.id = 'vid-' + i;
+    wrap.tabIndex = 0;
+    wrap.setAttribute('aria-label', `Video memory ${i+1}`);
+
+    wrap.innerHTML = `
+      <video preload="metadata" loop playsinline muted>
+        <source src="photos/${encodeURIComponent(file)}" type="video/mp4">
+      </video>
+      <div class="vid-meta">
+        <div class="play-btn">▶</div>
+        <div class="vid-info">
+          VIDEO_${String(i+1).padStart(2,'0')}
+          <span class="vid-dur" id="dur-${i}">--:--</span>
+          <span class="vid-year">RECORDED ${year}</span>
+        </div>
+      </div>
+      <div class="vid-hover-overlay">
+        <div class="hov-play">▶ PLAY</div>
+        <div class="hov-dur" id="hdur-${i}">Duration: --:--</div>
+        <div class="hov-year">Recorded ${year}</div>
+      </div>
+      <div class="vid-decrypt" id="decrypt-${i}">
+        <div class="decrypt-text">Decrypting Video...</div>
+        <div class="decrypt-label" id="dlabel-${i}">████████ 0%</div>
+        <div class="decrypt-bar"><div class="decrypt-fill" id="dfill-${i}"></div></div>
+      </div>`;
+
+    const video = wrap.querySelector('video');
+
+    // Load metadata for duration
+    video.addEventListener('loadedmetadata', () => {
+      const dur = formatDuration(video.duration);
+      const d = document.getElementById('dur-' + i);
+      const hd = document.getElementById('hdur-' + i);
+      if (d) d.textContent = dur;
+      if (hd) hd.textContent = 'Duration: ' + dur;
+    });
+
+    wrap.addEventListener('click', () => playVideoWithDecrypt(i, video, wrap));
+    wrap.addEventListener('keydown', (e) => { if (e.key === 'Enter') playVideoWithDecrypt(i, video, wrap); });
+
+    grid.appendChild(wrap);
+  });
+}
+
+function formatDuration(secs) {
+  if (isNaN(secs)) return '--:--';
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function playVideoWithDecrypt(idx, video, wrap) {
+  if (wrap.classList.contains('playing')) {
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+      wrap.classList.remove('playing');
+    }
+    return;
+  }
+
+  // Pause all others
+  document.querySelectorAll('.vid-wrap.playing').forEach(w => {
+    w.classList.remove('playing');
+    const v = w.querySelector('video');
+    if (v) v.pause();
+  });
+
+  const decrypt = document.getElementById('decrypt-' + idx);
+  const fill = document.getElementById('dfill-' + idx);
+  const label = document.getElementById('dlabel-' + idx);
+
+  decrypt.classList.add('active');
+
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += 8 + Math.random() * 10;
+    pct = Math.min(100, pct);
+    fill.style.width = pct + '%';
+    const filled = Math.round(pct / 10);
+    const bar = '█'.repeat(filled) + '░'.repeat(10-filled);
+    if (label) label.textContent = bar + ' ' + Math.round(pct) + '%';
+    if (pct >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        decrypt.classList.remove('active');
+        wrap.classList.add('playing');
+        video.muted = false;
+        video.play().catch(() => { video.muted = true; video.play(); });
+      }, 350);
+    }
+  }, 75);
+}
+
+/* ════════════════════════════════════════════
+   ULTRA CHAOS BUTTON
+   ════════════════════════════════════════════ */
+function triggerUltraChaos() {
+  const body = document.body;
+  let count = 0;
+  const iv = setInterval(() => {
+    count++;
+    body.style.filter = `hue-rotate(${count * 37}deg) contrast(${1 + Math.random()}) saturate(${1 + Math.random() * 3})`;
+    if (count > 12) {
+      clearInterval(iv);
+      body.style.filter = '';
+    }
+  }, 90);
+  showSectionTransition();
+}
+
+/* ════════════════════════════════════════════
+   SECTION TRANSITIONS
+   ════════════════════════════════════════════ */
+function showSectionTransition() {
+  const el = document.getElementById('sectTrans');
+  el.classList.remove('active');
+  void el.offsetWidth; // Trigger reflow
+  el.classList.add('active');
+}
+
+// Observe sections for transitions
+function setupSectionTransitions() {
+  let lastSection = null;
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.target !== lastSection) {
+        if (lastSection !== null) showSectionTransition();
+        lastSection = entry.target;
+      }
+    });
+  }, {threshold: 0.3});
+  sections.forEach(s => observer.observe(s));
+}
+
+/* ════════════════════════════════════════════
+   NAME SCRAMBLE
+   ════════════════════════════════════════════ */
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+function scrambleName() {
+  const el = document.getElementById('scrambleName');
+  const target = 'TETEA';
+  let iterations = 0;
+  const iv = setInterval(() => {
+    el.textContent = target.split('').map((c, i) => {
+      if (i < Math.floor(iterations / 2.5)) return c;
+      return CHARS[Math.floor(Math.random() * CHARS.length)];
+    }).join('');
+    iterations++;
+    if (iterations > target.length * 2.5 + 8) {
+      el.textContent = target;
+      clearInterval(iv);
+    }
+  }, 70);
+}
+
+setInterval(scrambleName, 10000);
+
+/* ════════════════════════════════════════════
+   AUDIO VISUALIZER BARS
+   ════════════════════════════════════════════ */
+function buildAudioViz() {
+  ['audioViz','audioViz2'].forEach(id => {
+    const viz = document.getElementById(id);
+    if (!viz) return;
+    for (let i = 0; i < 36; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'viz-bar';
+      bar.style.animationDelay = (Math.random() * 0.7) + 's';
+      bar.style.animationDuration = (0.35 + Math.random() * 0.5) + 's';
+      bar.style.height = (15 + Math.random() * 85) + '%';
+      viz.appendChild(bar);
+    }
+  });
+}
+
+/* ════════════════════════════════════════════
+   TERMINAL LETTER TYPING
+   ════════════════════════════════════════════ */
+const LETTER = [
+  "Hey Tetea,",
+  "",
+  "I know I couldn't be there today,",
+  "so I made this little archive for you.",
+  "",
+  "Every picture here reminds me how",
+  "lucky I am to have you as a friend.",
+  "",
+  "Thanks for every laugh,",
+  "every random adventure,",
+  "every unforgettable memory.",
+  "",
+  "Happy Birthday.",
+  "",
+  "Here's to making many more",
+  "memories together.",
+  "",
+  "— your guy 🖤"
+];
+
+let letterTyped = false;
+
+function startTypingLetter() {
+  if (letterTyped) return;
+  letterTyped = true;
+
+  const content = document.getElementById('letterContent');
+  const cursor = document.getElementById('typeCursor');
+  const fullText = LETTER.join('\n');
+  let charIdx = 0;
+
+  function typeChar() {
+    if (charIdx >= fullText.length) {
+      cursor.style.display = 'none';
+      setTimeout(() => {
+        document.getElementById('triggerSecret').classList.add('visible');
+      }, 1800);
+      return;
+    }
+    const ch = fullText[charIdx++];
+    content.textContent += ch;
+    // Scroll to keep up
+    const letter = document.getElementById('terminalLetter');
+    letter.scrollTop = letter.scrollHeight;
+
+    const delay = ch === '\n' ? 250 :
+                  ch === ',' || ch === '.' ? 150 :
+                  ch === ' ' ? 45 :
+                  35 + Math.random() * 65;
+    setTimeout(typeChar, delay);
+  }
+
+  typeChar();
+}
+
+// Trigger typing when letter comes into view
+function setupLetterObserver() {
+  const letter = document.getElementById('terminalLetter');
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      setTimeout(startTypingLetter, 600);
+      observer.disconnect();
+    }
+  }, {threshold: 0.6});
+  observer.observe(letter);
+}
+
+// Secret ending trigger
+function setupSecretTrigger() {
+  const el = document.getElementById('triggerSecret');
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', triggerSecretEnding);
+}
+
+/* ════════════════════════════════════════════
+   SECRET ENDING
+   ════════════════════════════════════════════ */
+function triggerSecretEnding() {
+  const ending = document.getElementById('secretEnding');
+  const fill = document.getElementById('finalFill1');
+  const btn = document.getElementById('finalBtn');
+  const phase2 = document.getElementById('transPhase2');
+
+  ending.classList.add('active');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => ending.classList.add('visible'));
+  });
+
+  // Animate fill bar
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct = Math.min(100, pct + 2.5 + Math.random() * 5);
+    fill.style.width = pct + '%';
+    if (pct >= 100) {
+      clearInterval(iv);
+      setTimeout(() => {
+        document.getElementById('transPhase1').style.display = 'none';
+        phase2.style.display = 'block';
+        setTimeout(() => {
+          btn.classList.add('visible');
+        }, 1400);
+      }, 700);
+    }
+  }, 60);
+}
+
+function revealFinalMemory() {
+  const btn = document.getElementById('finalBtn');
+  const phase2 = document.getElementById('transPhase2');
+  const memory = document.getElementById('finalMemory');
+
+  btn.style.opacity = '0';
+  phase2.style.display = 'none';
+  memory.classList.add('active');
+
+  // Remove all glitch effects from ending
+  document.getElementById('secretEnding').style.background = '#0a0a0a';
+  document.querySelector('.final-memory img').style.filter = 'none';
+}
+
+function closeSecretEnding() {
+  const ending = document.getElementById('secretEnding');
+  ending.classList.remove('visible');
+  setTimeout(() => {
+    ending.classList.remove('active');
+    // Reset
+    document.getElementById('transPhase1').style.display = '';
+    document.getElementById('transPhase2').style.display = 'none';
+    document.getElementById('finalBtn').classList.remove('visible');
+    document.getElementById('finalMemory').classList.remove('active');
+    document.getElementById('finalFill1').style.width = '0%';
+    ending.style.background = '';
+  }, 1600);
+}
+
+/* ════════════════════════════════════════════
+   EASTER EGGS
+   ════════════════════════════════════════════ */
+// 1. Konami Code
+const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+let konamiIdx = 0;
+document.addEventListener('keydown', e => {
+  if (e.keyCode === KONAMI[konamiIdx]) {
+    konamiIdx++;
+    if (konamiIdx === KONAMI.length) {
+      konamiIdx = 0;
+      activateDevMode();
+    }
+  } else {
+    konamiIdx = 0;
+  }
+});
+
+function activateDevMode() {
+  document.getElementById('devMode').classList.add('active');
+  showEggToast('DEVELOPER MODE', 'Friendship Level: 999999 // Access Granted');
+  setTimeout(() => document.getElementById('devMode').classList.remove('active'), 12000);
+}
+
+// 2. Click childhood photo 22 times
+let photoClickCount = 0;
+document.getElementById('beginningPhoto').addEventListener('click', e => {
+  e.stopPropagation();
+  photoClickCount++;
+  if (photoClickCount === 22) {
+    photoClickCount = 0;
+    showEggToast('ACHIEVEMENT UNLOCKED 🏆', 'Best Friend // That means a lot.');
+  } else if (photoClickCount > 1) {
+    // Small visual feedback
+    const p = document.getElementById('heroPolaroid');
+    p.style.transform = 'scale(1.03)';
+    setTimeout(() => p.style.transform = '', 200);
+  }
+});
+
+// 3. Idle 5 minutes toast
+let idleToastShown = false;
+setTimeout(() => {
+  if (!idleToastShown) {
+    idleToastShown = true;
+    showEggToast('Still here?', 'Thanks for looking through everything. 🖤');
+  }
+}, 5 * 60 * 1000);
+
+function showEggToast(title, sub, duration = 6000) {
+  const toast = document.getElementById('eggToast');
+  toast.querySelector('.egg-title').textContent = title;
+  toast.querySelector('.egg-sub').textContent = sub;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), duration);
+}
+
+/* ════════════════════════════════════════════
+   NAV HIDE ON SCROLL DOWN
+   ════════════════════════════════════════════ */
+let lastScrollY = 0;
+lenis.on('scroll', (e) => {
+  const nav = document.getElementById('mainNav');
+  const y = e.scroll;
+  if (y > lastScrollY && y > 150) {
+    nav.classList.add('nav-hidden');
+  } else {
+    nav.classList.remove('nav-hidden');
+  }
+  lastScrollY = y;
+});
+
+/* ════════════════════════════════════════════
+   FX CANVAS — PARTICLE RAIN
+   ════════════════════════════════════════════ */
+function initFxCanvas() {
+  const canvas = document.getElementById('fx-canvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, cols, drops;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    cols = Math.floor(w / 24);
+    drops = new Array(cols).fill(0).map(() => Math.random() * -h);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const CHARS2 = '01アイウエオカキクケコサシスセソABCDEF';
+  let frameCount = 0;
+  function draw() {
+    // Optimization: Draw every other frame
+    frameCount++;
+    if (frameCount % 2 === 0) {
+      ctx.fillStyle = 'rgba(5,5,5,0.06)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = '15px monospace';
+      drops.forEach((y, i) => {
+        const char = CHARS2[Math.floor(Math.random() * CHARS2.length)];
+        const alpha = Math.random() * 0.3 + 0.05;
+        ctx.fillStyle = `rgba(0,240,255,${alpha})`;
+        ctx.fillText(char, i * 24, y);
+        drops[i] = y > h + 40 ? Math.random() * -200 : y + (Math.random() * 12 + 6);
+      });
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ════════════════════════════════════════════
+   KEYBOARD NAVIGATION
+   ════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  const lb = document.getElementById('lightbox');
+  if (lb.classList.contains('active')) {
+    if (e.key === 'ArrowLeft') lbPrev();
+    if (e.key === 'ArrowRight') lbNext();
+    if (e.key === 'Escape') closeLightbox();
+  }
+  if (e.key === 'Escape' && document.getElementById('secretEnding').classList.contains('active')) {
+    closeSecretEnding();
+  }
+});
+
+/* ════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildHeroBg();
+  buildScatter();
+  buildGrid();
+  buildVideos();
+  buildAudioViz();
+  initFxCanvas();
+  setupSectionTransitions();
+  setupLetterObserver();
+  setupSecretTrigger();
+  startMemoryHighlight();
+  runLoadingSequence();
+});
+</script>
+</body>
+</html>
